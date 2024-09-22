@@ -54,7 +54,7 @@ int image_to_gray_scale(struct image input, struct image* output)
 {
 	// Grayscale images only have one channel
 	output->channels = 1;
-	output->data = (unsigned char*)malloc(output->size);
+	output->data = (unsigned char*)malloc(input.size * sizeof(char));
 
 	for (unsigned char *p = input.data, *pg = output->data; p != input.data + input.size; p += input.channels, pg += output->channels)
 	{
@@ -138,7 +138,9 @@ int main(int argc, char** argv)
 	if (!strcmp(argv[1], "--version") || !strcmp(argv[1], "-v")){ printf("cascii version: %g\n", VERSION); }
 
 	struct image original_image;
-	original_image.path = argv[1];
+	original_image.path = malloc(sizeof(char) * strlen(argv[1]));
+	original_image.path = strcpy(original_image.path, argv[1]);
+
 
 	if (!image_load(&original_image)) { printf("%s", help_message); return 0; }
 
@@ -151,6 +153,8 @@ int main(int argc, char** argv)
 	}
 
 	if (argc < 4) { printf("%s", help_message); return 0; }
+
+
 
 	// we can maintain aspect ratio this way
 	int aspect_ratio = original_image.width / original_image.height;
@@ -192,9 +196,10 @@ int main(int argc, char** argv)
 	image_to_ascii(gray_image, make_file);
 
 	// We free the data 
-	free(gray_image.data);
+	free(original_image.path);
+	stbi_image_free(gray_image.data);
 	stbi_image_free(original_image.data);
-	free(resized_image.data);
+	stbi_image_free(resized_image.data);
 
 	return 0;
 }
